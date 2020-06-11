@@ -3,6 +3,8 @@ package com.example.mobileapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -15,7 +17,6 @@ public class MainActivity extends AppCompatActivity {
     private EditText name;
     private EditText password;
     private Button login;
-    private TextView errorMsg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,33 +24,32 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // associate variables with the corresponding elements in the activity
-        name = (EditText)findViewById(R.id.etName);
+        //name = (EditText)findViewById(R.id.etName);
         password = (EditText)findViewById(R.id.etPassword);
-        errorMsg = (TextView)findViewById(R.id.errorMsg);
         login = (Button)findViewById(R.id.btnLogin);
 
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String inputName = name.getText().toString();
                 String inputPassword = password.getText().toString();
-                if (inputName.isEmpty() || inputPassword.isEmpty()) {
-                    errorMsg.setText("Please fill in all fields...");
+                if (inputPassword.isEmpty()) {
+                    password.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
                 } else {
-                    validate(inputName, inputPassword);
+                    validate(inputPassword);
                 }
             }
         });
     }
 
-    private void validate(String userName, String userPassword) {
+    private void validate(String userPassword) {
         //hardcoded for now
-        if (userName.equals("serveerder") && userPassword.equals("serveerder")) {
-            errorMsg.setText("");
+        if (userPassword.equals("serveerder")) {
+            password.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
             Intent intent = new Intent(MainActivity.this, SecondActivity.class);
             startActivity(intent);
         } else {
-            errorMsg.setText("Invalid credentials...");
+            password.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+            password.setText("");
         }
     }
 
