@@ -21,12 +21,15 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
     // create variables
-    private EditText name;
     private EditText password;
     private Button login;
 
@@ -34,35 +37,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-        //API connection
-        //Replace the ip address with ip address of your device
-        //Replace "app.run" in app.py with "app.run(host='0.0.0.0', port=5000)"
-        String URL = "http://192.168.2.91:5000/api/get_all_products";
-
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        JsonObjectRequest objectRequest = new JsonObjectRequest(
-                Request.Method.POST,
-                URL,
-                null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e("Rest Response: ", response.toString());
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("Rest Response: ", error.toString());
-                    }
-                }
-        );
-
-        requestQueue.add(objectRequest);
-
-
 
         //UI-configurations
         // associate variables with the corresponding elements in the activity
@@ -84,15 +58,58 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void validate(String userPassword) {
-        //hardcoded for now
-        if (userPassword.equals("serveerder")) {
-            password.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
-            Intent intent = new Intent(MainActivity.this, SecondActivity.class);
-            startActivity(intent);
-        } else {
-            password.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
-            password.setText("");
+
+        //Creating a jsonBody with the login credentials
+        JSONObject jsonBody = new JSONObject();
+
+        try {
+            //The role for this mobile app is 'serveerder' by default
+            jsonBody.put("role", "serveerder");
+            jsonBody.put("password", userPassword);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
+
+        //API connection
+        //Replace the ip address with ip address of your device
+        //Replace "app.run" in app.py with "app.run(host='0.0.0.0', port=5000)"
+
+        String URL = "http://192.168.2.91:5000/api/auth";
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        JsonObjectRequest objectRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                URL,
+                jsonBody,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.e("Rest Response: ", response.toString());
+                        try {
+                            //When the response contains a token
+                            response.getString("token");
+                            //Reset underline to white, create and start new intent
+                            password.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+                            Intent intent = new Intent(MainActivity.this, SecondActivity.class);
+                            startActivity(intent);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("Rest Response: ", error.toString());
+                        //When login request returns negative, display error (red line)
+                        password.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.SRC_ATOP);
+                    }
+                }
+        );
+
+        requestQueue.add(objectRequest);
+
     }
 
 }
