@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
                             //When the response contains a token
                             response.getString("token");
                             //Reset underline to white, create and start new intent
-                            password.getBackground().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+                            password.getBackground().setColorFilter(Color.parseColor("#00bf36"), PorterDuff.Mode.SRC_ATOP);
                             Intent intent = new Intent(MainActivity.this, DashboardActivity.class);
                             startActivity(intent);
                         } catch (JSONException e) {
