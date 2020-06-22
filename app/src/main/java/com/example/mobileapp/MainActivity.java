@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         // associate variables with the corresponding elements in the activity
         //name = (EditText)findViewById(R.id.etName);
         password = (EditText)findViewById(R.id.etPassword);
+        password.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
         login = (Button)findViewById(R.id.btnLogin);
 
         login.setOnClickListener(new View.OnClickListener() {

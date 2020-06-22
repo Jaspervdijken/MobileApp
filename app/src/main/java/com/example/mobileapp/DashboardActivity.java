@@ -32,6 +32,7 @@ public class DashboardActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 MainActivity.password.setText("");
+                MainActivity.password.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.SRC_ATOP);
                 finish();
             }
         });

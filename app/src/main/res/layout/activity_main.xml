@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#26AF91"
+    android:background="#FFFFFF"
     tools:context=".MainActivity">
 
     <EditText
@@ -14,10 +14,9 @@
         android:ems="10"
         android:hint="Password"
         android:inputType="textPassword"
-        android:textColor="#FFFFFF"
-        android:textColorHighlight="#FFFFFF"
-        android:textColorHint="#EDEDED"
-        android:textColorLink="#FFFFFF"
+        android:textColorHighlight="@android:color/primary_text_light"
+        android:textColorLink="#888888"
+        android:textCursorDrawable="@android:color/background_dark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
@@ -41,7 +40,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Welcome"
-        android:textColor="#FFFFFF"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -56,7 +54,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="Please login to start managing orders"
-        android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="italic"
         app:layout_constraintEnd_toEndOf="parent"
