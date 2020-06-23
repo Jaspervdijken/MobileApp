@@ -27,6 +27,7 @@ import org.json.JSONObject;
 public class ViewOrdersActivity extends AppCompatActivity {
 
     private TextView outputText;
+    private TextView priceField;
     private Spinner spinner;
     private static final String[] paths = {"1", "2", "3","4", "5", "6", "7", "8", "9","10"};
     private int selectedTable;
@@ -37,6 +38,7 @@ public class ViewOrdersActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_orders);
 
         outputText = (TextView)findViewById(R.id.outputText);
+        priceField = (TextView)findViewById(R.id.priceField);
         spinner = (Spinner)findViewById(R.id.spinner);
         ArrayAdapter<String>adapter = new ArrayAdapter<String>(ViewOrdersActivity.this,
                 android.R.layout.simple_spinner_item,paths);
@@ -108,8 +110,15 @@ public class ViewOrdersActivity extends AppCompatActivity {
 
     private void showResponse(JSONObject jsonResponse) throws JSONException {
         System.out.println("JSONRESPONSE: " + jsonResponse);
-        String x = jsonResponse.toString();
-        outputText.setText(x);
+        System.out.println(jsonResponse.get("price"));
+        if (jsonResponse.get("price").equals(0)) {
+            outputText.setText("No orders");
+            priceField.setText("Total: € 0,-");
+        } else {
+            outputText.setText("Orders: \n \n" + jsonResponse.get("all_orders"));
+            priceField.setText("Total: € " + jsonResponse.get("price"));
+        }
+
 
     }
     /*
