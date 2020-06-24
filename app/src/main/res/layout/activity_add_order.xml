@@ -4,11 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:overScrollMode="ifContentScrolls"
     tools:context=".AddOrderActivity">
 
     <Spinner
         android:id="@+id/spinner"
-        android:layout_width="374dp"
+        android:layout_width="0dp"
         android:layout_height="47dp"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -28,22 +29,27 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/recipes"
-        android:layout_width="378dp"
-        android:layout_height="556dp"
+    <ScrollView
+        android:id="@+id/linear"
+        android:layout_width="362dp"
+        android:layout_height="561dp"
         android:layout_marginStart="16dp"
         android:layout_marginLeft="16dp"
-        android:layout_marginTop="17dp"
-        android:fadeScrollbars="true"
-        android:isScrollContainer="true"
-        android:overScrollMode="ifContentScrolls"
-        android:scrollbars = "vertical"
-        android:text="TextView"
-        android:textColor="#000000"
-        android:textSize="30sp"
-        android:verticalScrollbarPosition="right"
+        android:layout_marginTop="20dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinner" />
+        app:layout_constraintTop_toBottomOf="@+id/spinner"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="236dp"
+            android:layout_height="573dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/spinner"></LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

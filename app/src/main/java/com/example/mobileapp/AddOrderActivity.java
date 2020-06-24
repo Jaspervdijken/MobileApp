@@ -9,13 +9,19 @@ import android.graphics.ColorSpace;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -35,10 +41,12 @@ import java.util.Iterator;
 
 public class AddOrderActivity extends AppCompatActivity {
     Spinner spinner;
-    TextView textView;
+    LinearLayout linear;
+    LinearLayout linearLayout;
 
     ArrayList<Integer> list = new ArrayList<>();
     ArrayList<String> recipes = new ArrayList<>();
+    EditText[] editTexts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,28 +54,41 @@ public class AddOrderActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_order);
 
         this.spinner = (Spinner) findViewById(R.id.spinner);
-        this.textView = (TextView) findViewById(R.id.recipes);
+        linearLayout = (LinearLayout) findViewById(R.id.linearLayout);
 
-        this.fetchTables();
         this.fetchRecipes();
+        this.fetchTables();
     }
 
     private void initTextView() {
-        textView.setMovementMethod(new ScrollingMovementMethod());
-
-        StringBuilder stringBuilder = new StringBuilder();
 
         for(String menuItem : recipes) {
-            stringBuilder.append(menuItem).append('\n');
+            TextView textView = new TextView(this);
+            textView.setText(menuItem);
+            textView.setTextSize(25);
+
+            EditText editText = new EditText(this);
+            editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+            linearLayout.addView(textView);
+            linearLayout.addView(editText);
+        }
+
+        /*
+        for(int i = 0; i < recipes.size(); i++) {
+            editTexts[i] = new EditText(this);
+            linear.addView(editTexts[i]);
         }
 
         textView.setText(stringBuilder.toString());
+
+         */
     }
 
     private void initSpinner() {
 
         ArrayAdapter<Integer> adapter =
-                new ArrayAdapter<Integer>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, list);
+                new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, list);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
         spinner.setAdapter(adapter);
@@ -105,6 +126,8 @@ public class AddOrderActivity extends AppCompatActivity {
                             }
 
                             initSpinner();
+                            editTexts = new EditText[recipes.size()];
+                            initTextView();
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -140,10 +163,8 @@ public class AddOrderActivity extends AppCompatActivity {
                             for(int i = 0; i < resp.length(); i++) {
                                 JSONObject object = resp.getJSONObject(i);
                                 recipes.add(object.getString("name"));
-                                recipes.add("\n");
+                                //recipes.add("\n");
                             }
-
-                            initTextView();
 
                         } catch (JSONException e) {
                             e.printStackTrace();
