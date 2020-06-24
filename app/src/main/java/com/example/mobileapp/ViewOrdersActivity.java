@@ -2,9 +2,6 @@ package com.example.mobileapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +21,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ViewOrdersActivity extends AppCompatActivity {
 
     private TextView outputText;
@@ -31,11 +33,19 @@ public class ViewOrdersActivity extends AppCompatActivity {
     private Spinner spinner;
     private static final String[] paths = {"1", "2", "3","4", "5", "6", "7", "8", "9","10"};
     private int selectedTable;
+    private JSONArray orderArray;
+    private JSONObject jsonObject;
+    private Map<String, Integer> orderItems;
+    private ArrayList<String> products;
+
+    //ArrayList<Object> list = new ArrayList<Object>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_orders);
+
+        getProductNames();
 
         outputText = (TextView)findViewById(R.id.outputText);
         priceField = (TextView)findViewById(R.id.priceField);
@@ -59,7 +69,6 @@ public class ViewOrdersActivity extends AppCompatActivity {
 
             }
         });
-
     }
 
     private void getTableInfo(int tableNumber) {
@@ -90,7 +99,52 @@ public class ViewOrdersActivity extends AppCompatActivity {
                     public void onResponse(JSONObject response) {
                         Log.e("Rest Response: ", response.toString());
                         try {
-                            showResponse(response);
+                            jsonObject = response;
+                            showResponse(jsonObject);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("Rest Response: ", error.toString());
+                    }
+                }
+        );
+
+        requestQueue.add(objectRequest);
+
+    }
+
+    private void getProductNames() {
+        //API connection
+        String URL = "http://192.168.2.91:5000/api/get_all_products";
+
+        final RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        JsonObjectRequest objectRequest = new JsonObjectRequest(
+                Request.Method.GET,
+                URL,
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.e("Rest Response: ", response.toString());
+                        try {
+                            //Get the product names from api, store in ArrayList 'products'
+                            products = new ArrayList<String>();
+                            JSONObject res = response;
+                            JSONArray arr1 = res.getJSONArray("products");
+                            for (int i = 0; i < arr1.length(); i++) {
+                                //For every product
+                                JSONObject arr2 = (JSONObject) arr1.get(i);
+                                //Extract product name
+                                String productName = (String) arr2.get("name");
+                                //Add to ArrayList
+                                products.add(productName);
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -109,59 +163,41 @@ public class ViewOrdersActivity extends AppCompatActivity {
     }
 
     private void showResponse(JSONObject jsonResponse) throws JSONException {
-        System.out.println("JSONRESPONSE: " + jsonResponse);
-        System.out.println(jsonResponse.get("price"));
         if (jsonResponse.get("price").equals(0)) {
             outputText.setText("No orders");
             priceField.setText("Total: € 0,-");
         } else {
-            outputText.setText("Orders: \n \n" + jsonResponse.get("all_orders"));
-            priceField.setText("Total: € " + jsonResponse.get("price"));
+            //Call method that gets the product names from api
+            //getProductNames();
+
+            String output = "";
+            //System.out.println(products);
+
+            //Ended here, trying to match amount with product name and display it, frames being skipped
+            /*
+            JSONArray one1 = jsonObject.getJSONArray("all_orders");
+            for (int i = 0; i < one1.length(); i++) {
+                //System.out.println("One: " + one1);
+                JSONArray two2 = (JSONArray) one1.get(i);
+                //System.out.println("Two: " + two2);
+                JSONObject three = (JSONObject) two2.get(0);
+                //System.out.println("Three: " + three);
+                Object amount = three.get("amount");
+                Object itemId = three.get("itemId");
+                output += "Three: " + amount + ":" + itemId;
+            }
+
+            outputText.setText(output);
+
+             */
+
+            JSONArray arr = jsonObject.getJSONArray("all_orders");
+            outputText.setText(arr.toString());
+            priceField.setText("€ " + String.valueOf(jsonResponse.get("price")));
+
         }
 
 
     }
-    /*
-    private void getTables() {
-
-
-        //API connection
-        //Replace the ip address with ip address of your device
-        //Replace "app.run" in app.py with "app.run(host='0.0.0.0', port=5000)"
-
-        String URL = "http://192.168.2.91:5000/api/get_current_orders";
-
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-
-        JsonObjectRequest objectRequest = new JsonObjectRequest(
-                Request.Method.GET,
-                URL,
-                null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e("Rest Response: ", response.toString());
-                        try {
-                            //response.getString("orders");
-                            JSONObject responseObject = new JSONObject(response.getString("orders"));
-                            JSONArray resultsArray = responseObject.getJSONArray("");
-                            System.out.println("ResultsArray: " + resultsArray);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("Rest Response: ", error.toString());
-                    }
-                }
-        );
-
-        requestQueue.add(objectRequest);
-    }
-    */
-
 }
 
