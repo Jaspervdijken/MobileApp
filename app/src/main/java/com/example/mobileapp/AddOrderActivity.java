@@ -244,6 +244,7 @@ public class AddOrderActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         Log.e("response", response.toString());
+                        Toast.makeText(getApplicationContext(), "Order sent", Toast.LENGTH_LONG).show();
                     }
                 },
                 new Response.ErrorListener() {
