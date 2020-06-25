@@ -21,9 +21,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class ViewOrdersActivity extends AppCompatActivity {
@@ -31,11 +33,13 @@ public class ViewOrdersActivity extends AppCompatActivity {
     private TextView outputText;
     private TextView priceField;
     private Spinner spinner;
-    private static final String[] paths = {"1", "2", "3","4", "5", "6", "7", "8", "9","10"};
+    private String[] paths;
+    private ArrayList<String> tables = new ArrayList<String>();
     private int selectedTable;
     private JSONObject jsonObject;
     private ArrayList<String> products;
     private HashMap<Object, Object> pairs = new HashMap<Object, Object>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,29 +49,11 @@ public class ViewOrdersActivity extends AppCompatActivity {
         //Get products from API, sent by last activity
         products = getIntent().getStringArrayListExtra("PRODUCTS_FROM_API");
 
+        this.getTables();
+
         outputText = (TextView)findViewById(R.id.outputText);
         priceField = (TextView)findViewById(R.id.priceField);
-        spinner = (Spinner)findViewById(R.id.spinner);
-        ArrayAdapter<String>adapter = new ArrayAdapter<String>(ViewOrdersActivity.this,
-                android.R.layout.simple_spinner_item,paths);
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-
-            @Override
-            public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                pairs.clear();
-                selectedTable = Integer.parseInt(paths[position]);
-                getTableInfo(selectedTable);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> arg0) {
-
-            }
-        });
     }
 
     private void getTableInfo(int tableNumber) {
@@ -111,6 +97,67 @@ public class ViewOrdersActivity extends AppCompatActivity {
         requestQueue.add(objectRequest);
     }
 
+    private void getTables() {
+        String URL = "http://192.168.2.91:5000/api/get_all_tables";
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        JsonObjectRequest objectRequest = new JsonObjectRequest(
+                Request.Method.GET,
+                URL,
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray resp = response.getJSONArray("tables");
+                            for(int i = 0; i < resp.length(); i++) {
+                                JSONObject object = resp.getJSONObject(i);
+                                tables.add(String.valueOf(object.getInt("tableNumber")));
+                            }
+
+                            initSpinner();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("Rest Response: ", error.toString());
+                    }
+                }
+        );
+        requestQueue.add(objectRequest);
+    }
+
+    private void initSpinner() {
+        spinner = (Spinner)findViewById(R.id.spinner);
+        ArrayAdapter<String>adapter = new ArrayAdapter<String>(ViewOrdersActivity.this,
+                android.R.layout.simple_spinner_item,tables);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            @Override
+            public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                pairs.clear();
+                selectedTable = Integer.parseInt(tables.get(position));
+                getTableInfo(selectedTable);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> arg0) {
+
+            }
+        });
+    }
+
     private void showResponse(JSONObject jsonResponse) throws JSONException {
         if (jsonResponse.get("price").equals(0)) {
             outputText.setText("No orders");
@@ -147,7 +194,6 @@ public class ViewOrdersActivity extends AppCompatActivity {
             */
 
         }
-
 
     }
 }
