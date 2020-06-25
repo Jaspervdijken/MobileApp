@@ -21,9 +21,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class ViewOrdersActivity extends AppCompatActivity {
@@ -33,19 +33,17 @@ public class ViewOrdersActivity extends AppCompatActivity {
     private Spinner spinner;
     private static final String[] paths = {"1", "2", "3","4", "5", "6", "7", "8", "9","10"};
     private int selectedTable;
-    private JSONArray orderArray;
     private JSONObject jsonObject;
-    private Map<String, Integer> orderItems;
     private ArrayList<String> products;
-
-    //ArrayList<Object> list = new ArrayList<Object>();
+    private HashMap<Object, Object> pairs = new HashMap<Object, Object>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_orders);
 
-        getProductNames();
+        //Get products from API, sent by last activity
+        products = getIntent().getStringArrayListExtra("PRODUCTS_FROM_API");
 
         outputText = (TextView)findViewById(R.id.outputText);
         priceField = (TextView)findViewById(R.id.priceField);
@@ -60,6 +58,7 @@ public class ViewOrdersActivity extends AppCompatActivity {
 
             @Override
             public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                pairs.clear();
                 selectedTable = Integer.parseInt(paths[position]);
                 getTableInfo(selectedTable);
             }
@@ -81,10 +80,6 @@ public class ViewOrdersActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        //API connection
-        //Replace the ip address with ip address of your device
-        //Replace "app.run" in app.py with "app.run(host='0.0.0.0', port=5000)"
 
         String URL = "http://192.168.2.91:5000/api/get_table_info";
 
@@ -113,53 +108,7 @@ public class ViewOrdersActivity extends AppCompatActivity {
                     }
                 }
         );
-
         requestQueue.add(objectRequest);
-
-    }
-
-    private void getProductNames() {
-        //API connection
-        String URL = "http://192.168.2.91:5000/api/get_all_products";
-
-        final RequestQueue requestQueue = Volley.newRequestQueue(this);
-
-        JsonObjectRequest objectRequest = new JsonObjectRequest(
-                Request.Method.GET,
-                URL,
-                null,
-                new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.e("Rest Response: ", response.toString());
-                        try {
-                            //Get the product names from api, store in ArrayList 'products'
-                            products = new ArrayList<String>();
-                            JSONObject res = response;
-                            JSONArray arr1 = res.getJSONArray("products");
-                            for (int i = 0; i < arr1.length(); i++) {
-                                //For every product
-                                JSONObject arr2 = (JSONObject) arr1.get(i);
-                                //Extract product name
-                                String productName = (String) arr2.get("name");
-                                //Add to ArrayList
-                                products.add(productName);
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.e("Rest Response: ", error.toString());
-                    }
-                }
-        );
-
-        requestQueue.add(objectRequest);
-
     }
 
     private void showResponse(JSONObject jsonResponse) throws JSONException {
@@ -168,32 +117,34 @@ public class ViewOrdersActivity extends AppCompatActivity {
             priceField.setText("Total: € 0,-");
         } else {
             //Call method that gets the product names from api
-            //getProductNames();
-
-            String output = "";
-            //System.out.println(products);
-
-            //Ended here, trying to match amount with product name and display it, frames being skipped
-            /*
             JSONArray one1 = jsonObject.getJSONArray("all_orders");
-            for (int i = 0; i < one1.length(); i++) {
-                //System.out.println("One: " + one1);
-                JSONArray two2 = (JSONArray) one1.get(i);
-                //System.out.println("Two: " + two2);
-                JSONObject three = (JSONObject) two2.get(0);
-                //System.out.println("Three: " + three);
+            JSONArray two2 = (JSONArray) one1.get(0);
+            //System.out.println("One: " + one1);
+            for (int i = 0; i < two2.length(); i++) {
+                JSONObject three = (JSONObject) two2.get(i);
                 Object amount = three.get("amount");
-                Object itemId = three.get("itemId");
-                output += "Three: " + amount + ":" + itemId;
+                if (!amount.equals(0)) {
+                    pairs.put(products.get((Integer) three.get("itemId")), amount);
+                }
             }
 
+            String output = "";
+            Iterator it = pairs.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry)it.next();
+                output += pair.getValue() + " x " + pair.getKey() + "\n";
+                it.remove();
+            }
+            //outputText.setText(pairs.toString());
             outputText.setText(output);
+            priceField.setText("€ " + String.valueOf(jsonResponse.get("price")));
 
-             */
-
+            //Working json part
+            /*
             JSONArray arr = jsonObject.getJSONArray("all_orders");
             outputText.setText(arr.toString());
             priceField.setText("€ " + String.valueOf(jsonResponse.get("price")));
+            */
 
         }
 
