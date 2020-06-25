@@ -9,6 +9,7 @@ import android.graphics.ColorSpace;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -29,6 +30,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import org.json.JSONArray;
@@ -37,30 +39,84 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 public class AddOrderActivity extends AppCompatActivity {
     Spinner spinner;
-    LinearLayout linear;
     LinearLayout linearLayout;
+    Button button;
 
     ArrayList<Integer> list = new ArrayList<>();
     ArrayList<String> recipes = new ArrayList<>();
-    EditText[] editTexts;
+    ArrayList<EditText> editTexts =  new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_order);
 
-        this.spinner = (Spinner) findViewById(R.id.spinner);
+        spinner = (Spinner) findViewById(R.id.spinner);
         linearLayout = (LinearLayout) findViewById(R.id.linearLayout);
+        Button button = (Button) findViewById(R.id.button);
+
+        button.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View view) {
+                Log.e("onClick", String.valueOf(editTexts.size()));
+                JSONObject jsonObject = new JSONObject();
+                JSONArray jsonArray = new JSONArray();
+                //jsonObject.put("orders", "")
+
+                for(int i = 0; i < editTexts.size(); i++) {
+                    JSONObject json = new JSONObject();
+                    String amount = editTexts.get(i).getText().toString();
+                    Log.e("onClick", i + " " + amount);
+
+                    if(amount.equals("")) {
+                        try {
+                            json.put("itemId", i);
+                            json.put("amount", 0);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            json.put("itemId", i);
+                            json.put("amount", Integer.parseInt(amount));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    jsonArray.put(json);
+                }
+                try {
+                    jsonObject.put("orders", (Object) jsonArray);
+                    jsonObject.put("table", spinner.getSelectedItem().toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                String jsonString = jsonObject.toString();
+                String jsonFormattedString = jsonString.replaceAll("\\\\", "");
+
+                try {
+                    JSONObject json = new JSONObject(jsonFormattedString);
+                    sendOrderToServer(json);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         this.fetchRecipes();
         this.fetchTables();
     }
 
     private void initTextView() {
+
+        if(recipes.size() == 0) {
+            this.fetchRecipes();
+        }
 
         for(String menuItem : recipes) {
             TextView textView = new TextView(this);
@@ -70,19 +126,11 @@ public class AddOrderActivity extends AppCompatActivity {
             EditText editText = new EditText(this);
             editText.setInputType(InputType.TYPE_CLASS_NUMBER);
 
+            editTexts.add(editText);
+
             linearLayout.addView(textView);
             linearLayout.addView(editText);
         }
-
-        /*
-        for(int i = 0; i < recipes.size(); i++) {
-            editTexts[i] = new EditText(this);
-            linear.addView(editTexts[i]);
-        }
-
-        textView.setText(stringBuilder.toString());
-
-         */
     }
 
     private void initSpinner() {
@@ -126,8 +174,6 @@ public class AddOrderActivity extends AppCompatActivity {
                             }
 
                             initSpinner();
-                            editTexts = new EditText[recipes.size()];
-                            initTextView();
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -170,6 +216,34 @@ public class AddOrderActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
+                        initTextView();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.e("Rest Response: ", error.toString());
+                    }
+                }
+        );
+        requestQueue.add(objectRequest);
+    }
+
+    private void sendOrderToServer(JSONObject order) {
+        Log.e("json ", order.toString());
+
+        String URL = "http://192.168.178.48:5000/api/add_new_order";
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        JsonObjectRequest objectRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                URL,
+                order,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.e("response", response.toString());
                     }
                 },
                 new Response.ErrorListener() {
